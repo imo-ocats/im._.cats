@@ -3,223 +3,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>普通ㄉ貓</title>
+    <title>普通ㄉ貓 - 象棋卜卦</title>
     <style>
-        :root { 
-            --bg-color: #FAFAFA; 
-            --primary-color: #ffe67a; 
-        }
+        :root { --bg-color: #FAFAFA; --primary: #ffe67a; }
         * { box-sizing: border-box; }
         body { 
-            background-color: var(--bg-color); 
-            font-family: "Microsoft JhengHei", sans-serif; 
-            margin: 0; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            height: 100vh; /* 固定高度防止滑動 */
-            overflow: hidden; 
+            background-color: var(--bg-color); font-family: sans-serif; margin: 0; 
+            display: flex; flex-direction: column; align-items: center; 
+            height: 100vh; overflow: hidden; 
         }
         
-        header { font-size: 1.5rem; margin-top: 10px; font-weight: bold; color: #333; flex: 0 0 auto; }
+        /* 縮短上方間距 */
+        header { font-size: 1.5rem; margin-top: 20px; font-weight: bold; flex: 0 0 auto; }
+        .nav-buttons { margin: 15px 0; flex: 0 0 auto; }
         
-        .nav-buttons { margin: 10px 0; flex: 0 0 auto; }
         button { 
-            padding: 8px 20px; 
-            font-size: 1rem; 
-            cursor: pointer; 
-            border: none; 
-            border-radius: 8px; 
-            background: var(--primary-color); 
-            color: #333; 
-            font-weight: bold;
-            margin: 0 5px; 
+            padding: 10px 25px; font-size: 1rem; cursor: pointer; border: none; 
+            border-radius: 8px; background: var(--primary); font-weight: bold; margin: 0 8px; 
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        /* 遊戲區域：自適應容器 */
-        #main-container {
-            flex: 1;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-            padding-bottom: 60px; /* 為 Footer 留白 */
+        /* 主舞台：讓內容靠上對齊，不要垂直居中 */
+        #stage { 
+            flex: 1; width: 100%; display: flex; flex-direction: column;
+            align-items: center; position: relative; 
+            padding-top: 10px; /* 這裡控制棋盤距離按鈕的距離 */
+            padding-bottom: 70px;
         }
 
-        /* 棋盤佈局 */
-        #game-board { 
-            display: grid; 
-            grid-template-columns: repeat(4, 1fr); 
-            gap: 8px; 
+        /* 棋盤樣式 */
+        .board-grid { 
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; 
         }
         .piece { 
-            width: clamp(45px, 10vw, 60px); 
-            height: clamp(45px, 10vw, 60px); 
-            background: #fff; 
-            border: 2px solid #555; 
-            border-radius: 50%; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            font-size: 1.2rem; 
-            cursor: pointer; 
-            box-shadow: 0 2px 0 #999;
+            width: clamp(45px, 12vw, 60px); height: clamp(45px, 12vw, 60px); 
+            background: #fff; border: 2px solid #555; border-radius: 50%; 
+            display: flex; justify-content: center; align-items: center; 
+            font-size: 1.3rem; cursor: pointer; box-shadow: 0 2px 0 #999;
         }
         .piece.flipped { background: #eee; color: #d32f2f; box-shadow: none; transform: translateY(2px); }
         .piece.black { color: #000; }
 
-        /* 卦象顯示 (自適應縮放) */
-        #result-display { 
-            position: relative;
-            width: 100%;
-            height: 100%;
-            transform-origin: center center;
-        }
-        .result-piece { 
-            position: absolute; 
-            width: 35px; 
-            height: 35px; 
-            border: 1.5px solid #333; 
-            border-radius: 50%; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            background: white; 
-            font-weight: bold; 
-            font-size: 0.9rem;
-            transform: translate(-50%, -50%);
+        /* 卦象顯示樣式 */
+        #result-view { position: relative; width: 100%; height: 100%; transform-origin: top center; }
+        .result-dot { 
+            position: absolute; width: 42px; height: 42px; border: 2px solid #333; 
+            border-radius: 50%; display: flex; justify-content: center; align-items: center; 
+            background: white; font-weight: bold; font-size: 1.1rem; transform: translate(-50%, -50%);
         }
 
         footer { 
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            background: var(--primary-color); 
-            padding: 12px 0; 
-            text-align: center;
-            font-weight: bold;
-            font-size: 0.9rem;
+            position: fixed; bottom: 0; width: 100%; background: var(--primary); 
+            padding: 15px 0; text-align: center; font-weight: bold; 
         }
-        .hidden { display: none; }
     </style>
 </head>
 <body>
 
 <header>普通ㄉ貓</header>
-
 <div class="nav-buttons">
-    <button onclick="startMode('single')">單掛</button>
-    <button onclick="startMode('chart')">命盤</button>
+    <button onclick="initGame('single')">單掛</button>
+    <button onclick="initGame('chart')">命盤</button>
 </div>
 
-<div id="main-container">
-    <div id="game-board"></div>
-    <div id="result-display" class="hidden"></div>
-</div>
+<div id="stage">
+    </div>
 
 <footer>im._.cats</footer>
 
 <script>
-const redP = ["帥", "仕", "仕", "相", "相", "俥", "俥", "傌", "傌", "炮", "炮", "兵", "兵", "兵", "兵", "兵"];
-const blkP = ["將", "士", "士", "象", "象", "車", "車", "馬", "馬", "包", "包", "卒", "卒", "卒", "卒", "卒"];
-const fullPool = [...redP, ...blkP];
+const RED = ["帥", "仕", "仕", "相", "相", "俥", "俥", "傌", "傌", "炮", "炮", "兵", "兵", "兵", "兵", "兵"];
+const BLK = ["將", "士", "士", "象", "象", "車", "車", "馬", "馬", "包", "包", "卒", "卒", "卒", "卒", "卒"];
+const POOL = [...RED, ...BLK];
+let mode = '', selected = [], shuffled = [];
 
-let currentMode = '';
-let selectedPieces = [];
-let shuffledPool = [];
-
-function startMode(mode) {
-    currentMode = mode;
-    selectedPieces = [];
-    shuffledPool = [...fullPool].sort(() => Math.random() - 0.5);
-    
-    document.getElementById('result-display').classList.add('hidden');
-    document.getElementById('game-board').classList.remove('hidden');
-    renderBoard();
-}
-
-function renderBoard() {
+function initGame(m) {
+    mode = m; selected = [];
+    shuffled = [...POOL].sort(() => Math.random() - 0.5);
+    const stage = document.getElementById('stage');
+    // 每次點按鈕都重置舞台，確保舊內容消失
+    stage.innerHTML = '<div id="game-board" class="board-grid"></div>';
     const board = document.getElementById('game-board');
-    board.innerHTML = '';
     for (let i = 0; i < 32; i++) {
         const div = document.createElement('div');
         div.className = 'piece';
-        div.onclick = () => flip(div, i);
+        div.onclick = function() {
+            if (this.classList.contains('flipped')) return;
+            const name = shuffled[i];
+            this.innerText = name;
+            this.classList.add('flipped');
+            if (BLK.includes(name)) this.classList.add('black');
+            selected.push(name);
+            if ((mode === 'single' && selected.length === 5) || (mode === 'chart' && selected.length === 32)) {
+                setTimeout(renderResult, 400);
+            }
+        };
         board.appendChild(div);
     }
 }
 
-function flip(el, index) {
-    if (el.classList.contains('flipped')) return;
-    if (currentMode === 'single' && selectedPieces.length >= 5) return;
-
-    const name = shuffledPool[index];
-    el.innerText = name;
-    el.classList.add('flipped');
-    if (blkP.includes(name)) el.classList.add('black');
+function renderResult() {
+    const stage = document.getElementById('stage');
+    stage.innerHTML = '<div id="result-view"></div>'; 
+    const view = document.getElementById('result-view');
     
-    selectedPieces.push(name);
+    const centerX = stage.offsetWidth / 2;
+    const step = mode === 'single' ? 75 : 45; 
+    const startY = 40; // 卦象起始位置
 
-    if (currentMode === 'single' && selectedPieces.length === 5) setTimeout(showResult, 500);
-    if (currentMode === 'chart' && selectedPieces.length === 32) setTimeout(showResult, 500);
-}
-
-function showResult() {
-    document.getElementById('game-board').classList.add('hidden');
-    const display = document.getElementById('result-display');
-    display.innerHTML = '';
-    display.classList.remove('hidden');
-    
-    // 獲取容器大小進行縮放
-    const rect = display.getBoundingClientRect();
-    const centerX = rect.width / 2;
-    const step = currentMode === 'single' ? 60 : 42; // 命盤較擠，間距縮小
-    const startY = 60;
-
-    // 命盤位置邏輯：圖中 1-33 的座標映射
-    const getPos = (n) => {
-        if (currentMode === 'single') {
-            const map = { 1:[0,1], 2:[-1,1], 3:[1,1], 4:[0,0], 5:[0,2] };
-            return map[n];
+    const getCoords = (n) => {
+        if (mode === 'single') {
+            const m = {1:[0,1], 2:[-1,1], 3:[1,1], 4:[0,0], 5:[0,2]};
+            return m[n];
         } else {
-            // 命盤 33 顆邏輯
-            // 每 4 顆為一個循環的身體，頭尾相接
-            const cycleMap = [
-                [0,1], [-1,1], [1,1], [0,0], // 1,2,3,4 (第一局)
-                [0,2], [0,3], [-1,3], [1,3], // 5,6,7,8 (第二局)
-                [0,4], [0,5], [-1,5], [1,5], // 9,10,11,12 (第三局)
-                [0,6], [0,7], [-1,7], [1,7], // 13,14,15,16
-                [0,8], [0,9], [-1,9], [1,9], // 17,18,19,20
-                [0,10], [0,11], [-1,11], [1,11], // 21,22,23,24
-                [0,12], [0,13], [-1,13], [1,13], // 25,26,27,28
-                [0,14], [0,15], [-1,15], [1,15], // 29,30,31,32
-                [0,16] // 33 (第4隻複製品)
+            const map = [
+                [0,1], [-1,1], [1,1], [0,0], // 1-4
+                [0,2], [0,3], [-1,3], [1,3], // 5-8
+                [0,4], [0,5], [-1,5], [1,5], // 9-12
+                [0,6], [0,7], [-1,7], [1,7], // 13-16
+                [0,8], [0,9], [-1,9], [1,9], // 17-20
+                [0,10], [0,11], [-1,11], [1,11], // 21-24
+                [0,12], [0,13], [-1,13], [1,13], // 25-28
+                [0,14], [0,15], [-1,15], [1,15], // 29-32
+                [0,16] // 33
             ];
-            return cycleMap[n-1];
+            return map[n-1];
         }
     };
 
-    let drawList = [...selectedPieces];
-    if (currentMode === 'chart') drawList.push(selectedPieces[3]); // 第 33 隻等於第 4 隻
+    let list = [...selected];
+    if (mode === 'chart') list.push(selected[3]); 
 
-    drawList.forEach((name, i) => {
-        const p = document.createElement('div');
-        p.className = 'result-piece';
-        p.style.color = blkP.includes(name) ? 'black' : 'red';
-        p.innerText = name;
-
-        const [gridX, gridY] = getPos(i + 1);
-        p.style.left = (centerX + gridX * step) + 'px';
-        p.style.top = (startY + gridY * step) + 'px';
-        display.appendChild(p);
+    list.forEach((name, i) => {
+        const d = document.createElement('div');
+        d.className = 'result-dot';
+        d.style.color = BLK.includes(name) ? 'black' : 'red';
+        d.innerText = name;
+        const coords = getCoords(i + 1);
+        if (coords) {
+            const [gx, gy] = coords;
+            d.style.left = (centerX + gx * step) + 'px';
+            d.style.top = (startY + gy * step) + 'px';
+            view.appendChild(d);
+        }
     });
 
-    // 自動縮放以適應螢幕
-    const contentHeight = (currentMode === 'single' ? 3 : 18) * step;
-    const scale = Math.min(1, (rect.height - 100) / contentHeight);
-    display.style.transform = `scale(${scale})`;
+    // 縮放以適應手機螢幕高度
+    const vHeight = (mode === 'single' ? 3 : 18) * step;
+    const scale = Math.min(1, (stage.offsetHeight - 60) / vHeight);
+    view.style.transform = `scale(${scale})`;
 }
 </script>
 </body>
