@@ -3,32 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>普通ㄉ貓 - 象棋卜卦</title>
+    <title>普通ㄉ貓</title>
     <style>
-        :root { --bg-color: #FAFAFA; --primary: #ffe67a; }
+        :root { --bg-color: #FAFAFA; --primary: #ffe67a; --dark-gray: #444; }
         * { box-sizing: border-box; }
         body { 
-            background-color: var(--bg-color); font-family: sans-serif; margin: 0; 
+            background-color: var(--bg-color); font-family: "Microsoft JhengHei", sans-serif; margin: 0; 
             display: flex; flex-direction: column; align-items: center; 
             height: 100vh; overflow: hidden; 
         }
         
-        /* 縮短上方間距 */
-        header { font-size: 1.5rem; margin-top: 20px; font-weight: bold; flex: 0 0 auto; }
+        header { font-size: 1.5rem; margin-top: 20px; font-weight: bold; color: var(--dark-gray); flex: 0 0 auto; }
         .nav-buttons { margin: 15px 0; flex: 0 0 auto; }
         
         button { 
             padding: 10px 25px; font-size: 1rem; cursor: pointer; border: none; 
             border-radius: 8px; background: var(--primary); font-weight: bold; margin: 0 8px; 
+            color: var(--dark-gray);
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        /* 主舞台：讓內容靠上對齊，不要垂直居中 */
         #stage { 
             flex: 1; width: 100%; display: flex; flex-direction: column;
             align-items: center; position: relative; 
-            padding-top: 10px; /* 這裡控制棋盤距離按鈕的距離 */
-            padding-bottom: 70px;
+            padding-top: 5px; 
+            padding-bottom: 80px; /* 預留底部 Bar 空間 */
         }
 
         /* 棋盤樣式 */
@@ -47,14 +46,15 @@
         /* 卦象顯示樣式 */
         #result-view { position: relative; width: 100%; height: 100%; transform-origin: top center; }
         .result-dot { 
-            position: absolute; width: 42px; height: 42px; border: 2px solid #333; 
+            position: absolute; border: 2.5px solid #333; 
             border-radius: 50%; display: flex; justify-content: center; align-items: center; 
-            background: white; font-weight: bold; font-size: 1.1rem; transform: translate(-50%, -50%);
+            background: white; font-weight: bold; transform: translate(-50%, -50%);
         }
 
         footer { 
             position: fixed; bottom: 0; width: 100%; background: var(--primary); 
-            padding: 15px 0; text-align: center; font-weight: bold; 
+            padding: 15px 0; text-align: center; font-weight: bold; color: var(--dark-gray);
+            z-index: 10;
         }
     </style>
 </head>
@@ -66,8 +66,7 @@
     <button onclick="initGame('chart')">命盤</button>
 </div>
 
-<div id="stage">
-    </div>
+<div id="stage"></div>
 
 <footer>im._.cats</footer>
 
@@ -81,7 +80,6 @@ function initGame(m) {
     mode = m; selected = [];
     shuffled = [...POOL].sort(() => Math.random() - 0.5);
     const stage = document.getElementById('stage');
-    // 每次點按鈕都重置舞台，確保舊內容消失
     stage.innerHTML = '<div id="game-board" class="board-grid"></div>';
     const board = document.getElementById('game-board');
     for (let i = 0; i < 32; i++) {
@@ -95,7 +93,7 @@ function initGame(m) {
             if (BLK.includes(name)) this.classList.add('black');
             selected.push(name);
             if ((mode === 'single' && selected.length === 5) || (mode === 'chart' && selected.length === 32)) {
-                setTimeout(renderResult, 400);
+                setTimeout(renderResult, 300);
             }
         };
         board.appendChild(div);
@@ -108,8 +106,13 @@ function renderResult() {
     const view = document.getElementById('result-view');
     
     const centerX = stage.offsetWidth / 2;
-    const step = mode === 'single' ? 75 : 45; 
-    const startY = 40; // 卦象起始位置
+    // 單掛間距縮小，命盤間距適中
+    const step = mode === 'single' ? 65 : 42; 
+    const startY = 30; 
+
+    // 單掛棋子加大
+    const dotSize = mode === 'single' ? 55 : 38;
+    const fontSize = mode === 'single' ? '1.5rem' : '1rem';
 
     const getCoords = (n) => {
         if (mode === 'single') {
@@ -117,15 +120,15 @@ function renderResult() {
             return m[n];
         } else {
             const map = [
-                [0,1], [-1,1], [1,1], [0,0], // 1-4
-                [0,2], [0,3], [-1,3], [1,3], // 5-8
-                [0,4], [0,5], [-1,5], [1,5], // 9-12
-                [0,6], [0,7], [-1,7], [1,7], // 13-16
-                [0,8], [0,9], [-1,9], [1,9], // 17-20
-                [0,10], [0,11], [-1,11], [1,11], // 21-24
-                [0,12], [0,13], [-1,13], [1,13], // 25-28
-                [0,14], [0,15], [-1,15], [1,15], // 29-32
-                [0,16] // 33
+                [0,1], [-1,1], [1,1], [0,0], 
+                [0,2], [0,3], [-1,3], [1,3], 
+                [0,4], [0,5], [-1,5], [1,5], 
+                [0,6], [0,7], [-1,7], [1,7], 
+                [0,8], [0,9], [-1,9], [1,9], 
+                [0,10], [0,11], [-1,11], [1,11], 
+                [0,12], [0,13], [-1,13], [1,13], 
+                [0,14], [0,15], [-1,15], [1,15], 
+                [0,16] 
             ];
             return map[n-1];
         }
@@ -137,6 +140,9 @@ function renderResult() {
     list.forEach((name, i) => {
         const d = document.createElement('div');
         d.className = 'result-dot';
+        d.style.width = dotSize + 'px';
+        d.style.height = dotSize + 'px';
+        d.style.fontSize = fontSize;
         d.style.color = BLK.includes(name) ? 'black' : 'red';
         d.innerText = name;
         const coords = getCoords(i + 1);
@@ -148,9 +154,10 @@ function renderResult() {
         }
     });
 
-    // 縮放以適應手機螢幕高度
-    const vHeight = (mode === 'single' ? 3 : 18) * step;
-    const scale = Math.min(1, (stage.offsetHeight - 60) / vHeight);
+    // 計算縮放，確保底部不被遮住
+    const vHeight = (mode === 'single' ? 3.5 : 18) * step;
+    const availableHeight = stage.offsetHeight - 20;
+    const scale = Math.min(1, availableHeight / vHeight);
     view.style.transform = `scale(${scale})`;
 }
 </script>
