@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>貓貓象棋卜卦</title>
+    <style>
+        :root { --bg-color: #ffe67a; }
+        body { background-color: var(--bg-color); font-family: Arial, sans-serif; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        
+        header { font-size: 2rem; margin: 20px 0; font-weight: bold; }
+        .nav-buttons { margin-bottom: 20px; }
+        button { padding: 10px 20px; font-size: 1.1rem; cursor: pointer; border: none; border-radius: 5px; background: #333; color: white; margin: 0 10px; }
+        
+        /* 棋盤區域 */
+        #game-board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 50px; }
+        .piece { width: 60px; height: 60px; background: #fff; border: 2px solid #333; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; cursor: pointer; user-select: none; }
+        .piece.flipped { background: #ddd; color: #d32f2f; }
+        .piece.black { color: #000; }
+
+        /* 卦象/命盤顯示區域 (十字排列) */
+        #result-display { position: relative; margin-top: 50px; min-height: 400px; width: 300px; }
+        .result-piece { position: absolute; width: 50px; height: 50px; border: 2px solid #333; border-radius: 50%; display: flex; justify-content: center; align-items: center; background: white; font-weight: bold; transition: transform 0.3s; }
+
+        footer { margin-top: auto; padding: 20px; font-size: 0.9rem; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<header>🐱 普通ㄉ貓</header>
+
+<div class="nav-buttons">
+    <button onclick="startMode('single')">單卦</button>
+    <button onclick="startMode('chart')">命盤</button>
+</div>
+
+<div id="game-board"></div>
+<div id="result-display" class="hidden"></div>
+
+<footer>IG: im._.cats</footer>
+
+<script>
+const piecesPool = ["帥", "仕", "仕", "相", "相", "俥", "俥", "傌", "傌", "炮", "炮", "兵", "兵", "兵", "兵", "兵",
+                    "將", "士", "士", "象", "象", "車", "車", "馬", "馬", "包", "包", "卒", "卒", "卒", "卒", "卒"];
+let currentMode = '';
+let selectedPieces = [];
+let shuffledPool = [];
+
+function startMode(mode) {
+    currentMode = mode;
+    selectedPieces = [];
+    shuffledPool = [...piecesPool].sort(() => Math.random() - 0.5);
+    document.getElementById('result-display').innerHTML = '';
+    document.getElementById('result-display').classList.add('hidden');
+    renderBoard();
+}
+
+function renderBoard() {
+    const board = document.getElementById('game-board');
+    board.classList.remove('hidden');
+    board.innerHTML = '';
+    for (let i = 0; i < 32; i++) {
+        const div = document.createElement('div');
+        div.className = 'piece';
+        div.onclick = () => flip(div, i);
+        board.appendChild(div);
+    }
+}
+
+function flip(el, index) {
+    if (el.classList.contains('flipped')) return;
+    
+    const pieceName = shuffledPool[index];
+    el.innerText = pieceName;
+    el.classList.add('flipped');
+    if ("將士象車馬包卒".includes(pieceName)) el.classList.add('black');
+    
+    selectedPieces.push(pieceName);
+
+    if (currentMode === 'single' && selectedPieces.length === 5) {
+        setTimeout(showResult, 500);
+    } else if (currentMode === 'chart' && selectedPieces.length === 32) {
+        setTimeout(showResult, 500);
+    }
+}
+
+function showResult() {
+    document.getElementById('game-board').classList.add('hidden');
+    const display = document.getElementById('result-display');
+    display.classList.remove('hidden');
+    
+    const centerX = 125, centerY = 50;
+    const step = 60;
+
+    selectedPieces.forEach((name, i) => {
+        const p = document.createElement('div');
+        p.className = 'result-piece';
+        if ("將士象車馬包卒".includes(name)) p.style.color = 'black';
+        else p.style.color = 'red';
+        p.innerText = name;
+
+        // 計算座標 (1中, 2左, 3右, 4上, 5下, 6下下...)
+        let x = centerX, y = centerY;
+        const n = i + 1;
+
+        if (n === 1) { x = centerX; y = centerY; }
+        else if (n === 2) { x = centerX - step; y = centerY; }
+        else if (n === 3) { x = centerX + step; y = centerY; }
+        else if (n === 4) { x = centerX; y = centerY - step; }
+        else {
+            // 從第5顆開始往下排
+            const downStep = n - 4;
+            y = centerY + (downStep * step);
+            // 處理命盤 6, 7, 8 的左右邏輯
+            if (currentMode === 'chart' && n > 5) {
+                const group = Math.floor((n - 3) / 3); 
+                const posInGroup = (n - 3) % 3; // 0:中, 1:左, 2:右
+                // 這裡簡化邏輯：5, 6, 9, 12... 為中軸
+                // 你要求的 7左 8右...
+                if (n === 7) { x = centerX - step; y = centerY + 2*step; }
+                else if (n === 8) { x = centerX + step; y = centerY + 2*step; }
+            }
+        }
+        
+        // 簡易邏輯修正：直接套用你的 1-9 邏輯
+        const logicPos = [
+            [0,0], [-1,0], [1,0], [0,-1], [0,1], // 1,2,3,4,5
+            [0,2], [-1,2], [1,2], [0,3]          // 6,7,8,9
+        ];
+        
+        if (n <= logicPos.length) {
+            x = centerX + (logicPos[n-1][0] * step);
+            y = centerY + (logicPos[n-1][1] * step);
+        } else {
+            // 超過 9 之後繼續往下延伸
+            y = centerY + ( (n-6) * step); 
+        }
+
+        p.style.left = x + 'px';
+        p.style.top = y + 'px';
+        display.appendChild(p);
+    });
+}
+</script>
+</body>
+</html>
