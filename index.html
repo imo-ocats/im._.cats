@@ -14,26 +14,24 @@
         }
         
         header { font-size: 1.5rem; margin-top: 20px; font-weight: bold; color: var(--dark-gray); flex: 0 0 auto; }
-        .nav-buttons { margin: 15px 0; flex: 0 0 auto; }
+        .nav-buttons { margin: 15px 0; flex: 0 0 auto; z-index: 20; }
         
         button { 
             padding: 10px 25px; font-size: 1rem; cursor: pointer; border: none; 
             border-radius: 8px; background: var(--primary); font-weight: bold; margin: 0 8px; 
-            color: var(--dark-gray);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            color: var(--dark-gray); box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         #stage { 
             flex: 1; width: 100%; display: flex; flex-direction: column;
             align-items: center; position: relative; 
             padding-top: 5px; 
-            padding-bottom: 80px; /* 預留底部 Bar 空間 */
+            /* 增加底部緩衝空間，確保不被 Bar 遮擋 */
+            padding-bottom: 70px; 
+            overflow: hidden;
         }
 
-        /* 棋盤樣式 */
-        .board-grid { 
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; 
-        }
+        .board-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
         .piece { 
             width: clamp(45px, 12vw, 60px); height: clamp(45px, 12vw, 60px); 
             background: #fff; border: 2px solid #555; border-radius: 50%; 
@@ -43,7 +41,6 @@
         .piece.flipped { background: #eee; color: #d32f2f; box-shadow: none; transform: translateY(2px); }
         .piece.black { color: #000; }
 
-        /* 卦象顯示樣式 */
         #result-view { position: relative; width: 100%; height: 100%; transform-origin: top center; }
         .result-dot { 
             position: absolute; border: 2.5px solid #333; 
@@ -54,7 +51,7 @@
         footer { 
             position: fixed; bottom: 0; width: 100%; background: var(--primary); 
             padding: 15px 0; text-align: center; font-weight: bold; color: var(--dark-gray);
-            z-index: 10;
+            z-index: 100;
         }
     </style>
 </head>
@@ -106,12 +103,11 @@ function renderResult() {
     const view = document.getElementById('result-view');
     
     const centerX = stage.offsetWidth / 2;
-    // 單掛間距縮小，命盤間距適中
-    const step = mode === 'single' ? 65 : 42; 
+    // 命盤間距稍微縮小一點點，增加容錯率
+    const step = mode === 'single' ? 60 : 40; 
     const startY = 30; 
 
-    // 單掛棋子加大
-    const dotSize = mode === 'single' ? 55 : 38;
+    const dotSize = mode === 'single' ? 60 : 38;
     const fontSize = mode === 'single' ? '1.5rem' : '1rem';
 
     const getCoords = (n) => {
@@ -119,6 +115,7 @@ function renderResult() {
             const m = {1:[0,1], 2:[-1,1], 3:[1,1], 4:[0,0], 5:[0,2]};
             return m[n];
         } else {
+            // 根據書本圖示排列 1-33 顆
             const map = [
                 [0,1], [-1,1], [1,1], [0,0], 
                 [0,2], [0,3], [-1,3], [1,3], 
@@ -154,9 +151,9 @@ function renderResult() {
         }
     });
 
-    // 計算縮放，確保底部不被遮住
+    // 關鍵修正：計算可用高度時，扣除 footer 的預計高度 (約 60px)
     const vHeight = (mode === 'single' ? 3.5 : 18) * step;
-    const availableHeight = stage.offsetHeight - 20;
+    const availableHeight = stage.offsetHeight - 20; // 留點邊距
     const scale = Math.min(1, availableHeight / vHeight);
     view.style.transform = `scale(${scale})`;
 }
