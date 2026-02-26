@@ -3,46 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>貓貓象棋卜卦</title>
+    <title>普通ㄉ貓</title>
     <style>
-        :root { --bg-color: #ffe67a; }
-        body { background-color: var(--bg-color); font-family: Arial, sans-serif; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        :root { 
+            --bg-color: #f3f1eb; 
+            --primary-color: #ffe67a; 
+        }
+        body { 
+            background-color: var(--bg-color); 
+            font-family: "Microsoft JhengHei", sans-serif; 
+            margin: 0; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            min-height: 100vh; 
+        }
         
-        header { font-size: 2rem; margin: 20px 0; font-weight: bold; }
+        header { font-size: 2rem; margin: 30px 0; font-weight: bold; color: #333; }
+        
         .nav-buttons { margin-bottom: 20px; }
-        button { padding: 10px 20px; font-size: 1.1rem; cursor: pointer; border: none; border-radius: 5px; background: #333; color: white; margin: 0 10px; }
+        button { 
+            padding: 12px 30px; 
+            font-size: 1.1rem; 
+            cursor: pointer; 
+            border: none; 
+            border-radius: 8px; 
+            background: var(--primary-color); 
+            color: #333; 
+            font-weight: bold;
+            margin: 0 10px; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        button:hover { opacity: 0.9; }
         
         /* 棋盤區域 */
-        #game-board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 50px; }
-        .piece { width: 60px; height: 60px; background: #fff; border: 2px solid #333; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; cursor: pointer; user-select: none; }
-        .piece.flipped { background: #ddd; color: #d32f2f; }
+        #game-board { 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 12px; 
+            margin-bottom: 80px; 
+            padding: 10px;
+        }
+        .piece { 
+            width: 65px; 
+            height: 65px; 
+            background: #fff; 
+            border: 2px solid #555; 
+            border-radius: 50%; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            font-size: 1.6rem; 
+            cursor: pointer; 
+            user-select: none; 
+            box-shadow: 0 3px 0 #999;
+        }
+        .piece.flipped { background: #eee; color: #d32f2f; box-shadow: none; transform: translateY(3px); }
         .piece.black { color: #000; }
 
-        /* 卦象/命盤顯示區域 (十字排列) */
-        #result-display { position: relative; margin-top: 50px; min-height: 400px; width: 300px; }
-        .result-piece { position: absolute; width: 50px; height: 50px; border: 2px solid #333; border-radius: 50%; display: flex; justify-content: center; align-items: center; background: white; font-weight: bold; transition: transform 0.3s; }
+        /* 卦象顯示區域 (容器) */
+        #result-display { 
+            position: relative; 
+            margin-top: 50px; 
+            width: 100%; 
+            max-width: 400px;
+            height: auto;
+            min-height: 500px;
+        }
+        .result-piece { 
+            position: absolute; 
+            width: 60px; 
+            height: 60px; 
+            border: 2px solid #333; 
+            border-radius: 50%; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            background: white; 
+            font-weight: bold; 
+            font-size: 1.5rem;
+        }
 
-        footer { margin-top: auto; padding: 20px; font-size: 0.9rem; }
+        /* 底部 IG Bar */
+        footer { 
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: var(--primary-color); 
+            padding: 15px 0; 
+            text-align: center;
+            font-weight: bold;
+            color: #333;
+            letter-spacing: 1px;
+        }
         .hidden { display: none; }
     </style>
 </head>
 <body>
 
-<header>🐱 普通ㄉ貓</header>
+<header>普通ㄉ貓</header>
 
 <div class="nav-buttons">
-    <button onclick="startMode('single')">單卦</button>
+    <button onclick="startMode('single')">單掛</button>
     <button onclick="startMode('chart')">命盤</button>
 </div>
 
-<div id="game-board"></div>
+<div id="game-board" class="hidden"></div>
+
 <div id="result-display" class="hidden"></div>
 
-<footer>IG: im._.cats</footer>
+<footer>im._.cats</footer>
 
 <script>
-const piecesPool = ["帥", "仕", "仕", "相", "相", "俥", "俥", "傌", "傌", "炮", "炮", "兵", "兵", "兵", "兵", "兵",
-                    "將", "士", "士", "象", "象", "車", "車", "馬", "馬", "包", "包", "卒", "卒", "卒", "卒", "卒"];
+const redPieces = ["帥", "仕", "仕", "相", "相", "俥", "俥", "傌", "傌", "炮", "炮", "兵", "兵", "兵", "兵", "兵"];
+const blackPieces = ["將", "士", "士", "象", "象", "車", "車", "馬", "馬", "包", "包", "卒", "卒", "卒", "卒", "卒"];
+const fullPool = [...redPieces, ...blackPieces];
+
 let currentMode = '';
 let selectedPieces = [];
 let shuffledPool = [];
@@ -50,15 +126,18 @@ let shuffledPool = [];
 function startMode(mode) {
     currentMode = mode;
     selectedPieces = [];
-    shuffledPool = [...piecesPool].sort(() => Math.random() - 0.5);
+    // 隨機洗牌 32 顆
+    shuffledPool = [...fullPool].sort(() => Math.random() - 0.5);
+    
     document.getElementById('result-display').innerHTML = '';
     document.getElementById('result-display').classList.add('hidden');
+    document.getElementById('game-board').classList.remove('hidden');
+    
     renderBoard();
 }
 
 function renderBoard() {
     const board = document.getElementById('game-board');
-    board.classList.remove('hidden');
     board.innerHTML = '';
     for (let i = 0; i < 32; i++) {
         const div = document.createElement('div');
@@ -71,74 +150,76 @@ function renderBoard() {
 function flip(el, index) {
     if (el.classList.contains('flipped')) return;
     
+    // 單掛模式限制點擊 5 次
+    if (currentMode === 'single' && selectedPieces.length >= 5) return;
+
     const pieceName = shuffledPool[index];
     el.innerText = pieceName;
     el.classList.add('flipped');
-    if ("將士象車馬包卒".includes(pieceName)) el.classList.add('black');
+    if (blackPieces.includes(pieceName)) el.classList.add('black');
     
     selectedPieces.push(pieceName);
 
+    // 判斷是否完成點擊
     if (currentMode === 'single' && selectedPieces.length === 5) {
-        setTimeout(showResult, 500);
+        setTimeout(showResult, 600);
     } else if (currentMode === 'chart' && selectedPieces.length === 32) {
-        setTimeout(showResult, 500);
+        setTimeout(showResult, 600);
     }
 }
 
 function showResult() {
+    // 隱藏棋盤，只留結果
     document.getElementById('game-board').classList.add('hidden');
     const display = document.getElementById('result-display');
+    display.innerHTML = '';
     display.classList.remove('hidden');
     
-    const centerX = 125, centerY = 50;
-    const step = 60;
+    const centerX = window.innerWidth / 2 - 30; // 抓畫面中間
+    const startY = 50;
+    const step = 70; // 棋子間隔
 
     selectedPieces.forEach((name, i) => {
         const p = document.createElement('div');
         p.className = 'result-piece';
-        if ("將士象車馬包卒".includes(name)) p.style.color = 'black';
+        if (blackPieces.includes(name)) p.style.color = 'black';
         else p.style.color = 'red';
         p.innerText = name;
 
-        // 計算座標 (1中, 2左, 3右, 4上, 5下, 6下下...)
-        let x = centerX, y = centerY;
+        let left = 0, top = 0;
         const n = i + 1;
 
-        if (n === 1) { x = centerX; y = centerY; }
-        else if (n === 2) { x = centerX - step; y = centerY; }
-        else if (n === 3) { x = centerX + step; y = centerY; }
-        else if (n === 4) { x = centerX; y = centerY - step; }
-        else {
-            // 從第5顆開始往下排
-            const downStep = n - 4;
-            y = centerY + (downStep * step);
-            // 處理命盤 6, 7, 8 的左右邏輯
-            if (currentMode === 'chart' && n > 5) {
-                const group = Math.floor((n - 3) / 3); 
-                const posInGroup = (n - 3) % 3; // 0:中, 1:左, 2:右
-                // 這裡簡化邏輯：5, 6, 9, 12... 為中軸
-                // 你要求的 7左 8右...
-                if (n === 7) { x = centerX - step; y = centerY + 2*step; }
-                else if (n === 8) { x = centerX + step; y = centerY + 2*step; }
-            }
-        }
-        
-        // 簡易邏輯修正：直接套用你的 1-9 邏輯
-        const logicPos = [
-            [0,0], [-1,0], [1,0], [0,-1], [0,1], // 1,2,3,4,5
-            [0,2], [-1,2], [1,2], [0,3]          // 6,7,8,9
-        ];
-        
-        if (n <= logicPos.length) {
-            x = centerX + (logicPos[n-1][0] * step);
-            y = centerY + (logicPos[n-1][1] * step);
+        if (currentMode === 'single') {
+            // 單掛十字排列：1中, 2左, 3右, 4上, 5下
+            if (n === 1) { left = centerX; top = startY + step; }
+            else if (n === 2) { left = centerX - step; top = startY + step; }
+            else if (n === 3) { left = centerX + step; top = startY + step; }
+            else if (n === 4) { left = centerX; top = startY; }
+            else if (n === 5) { left = centerX; top = startY + (step * 2); }
         } else {
-            // 超過 9 之後繼續往下延伸
-            y = centerY + ( (n-6) * step); 
+            // 命盤排列邏輯：
+            // 1中, 2左, 3右, 4上, 5下, 6下下, 7(6左), 8(6右), 9(6下)...
+            // 邏輯歸納：1-4 為固定，5 之後為每 3 個一組往下排
+            if (n === 1) { left = centerX; top = startY + step; }
+            else if (n === 2) { left = centerX - step; top = startY + step; }
+            else if (n === 3) { left = centerX + step; top = startY + step; }
+            else if (n === 4) { left = centerX; top = startY; }
+            else {
+                // 從第5顆開始，5 6 9 12... 是中軸
+                // 計算它是第幾排
+                const row = Math.floor((n - 5) / 3); 
+                const col = (n - 5) % 3; // 0:中, 1:左, 2:右
+                
+                top = startY + (step * (row + 2));
+                if (col === 0) left = centerX;
+                else if (col === 1) left = centerX - step;
+                else if (col === 2) left = centerX + step;
+            }
+            // 第33顆(雖然只有32)邏輯預留：就是最下面
         }
 
-        p.style.left = x + 'px';
-        p.style.top = y + 'px';
+        p.style.left = left + 'px';
+        p.style.top = top + 'px';
         display.appendChild(p);
     });
 }
