@@ -13,12 +13,12 @@
             height: 100vh; overflow: hidden; 
         }
         
-        header { font-size: 1.5rem; margin-top: 20px; font-weight: bold; color: var(--dark-gray); flex: 0 0 auto; }
-        .nav-buttons { margin: 15px 0; flex: 0 0 auto; z-index: 20; }
+        header { font-size: 1.5rem; margin-top: 15px; font-weight: bold; color: var(--dark-gray); flex: 0 0 auto; }
+        .nav-buttons { margin: 10px 0; flex: 0 0 auto; z-index: 20; }
         
         button { 
-            padding: 10px 25px; font-size: 1rem; cursor: pointer; border: none; 
-            border-radius: 8px; background: var(--primary); font-weight: bold; margin: 0 8px; 
+            padding: 8px 20px; font-size: 1rem; cursor: pointer; border: none; 
+            border-radius: 8px; background: var(--primary); font-weight: bold; margin: 0 5px; 
             color: var(--dark-gray); box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
@@ -26,17 +26,16 @@
             flex: 1; width: 100%; display: flex; flex-direction: column;
             align-items: center; position: relative; 
             padding-top: 5px; 
-            /* 增加底部緩衝空間，確保不被 Bar 遮擋 */
-            padding-bottom: 70px; 
+            padding-bottom: 50px; /* 這裡預留給縮小後的 footer */
             overflow: hidden;
         }
 
         .board-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
         .piece { 
-            width: clamp(45px, 12vw, 60px); height: clamp(45px, 12vw, 60px); 
+            width: clamp(40px, 12vw, 60px); height: clamp(40px, 12vw, 60px); 
             background: #fff; border: 2px solid #555; border-radius: 50%; 
             display: flex; justify-content: center; align-items: center; 
-            font-size: 1.3rem; cursor: pointer; box-shadow: 0 2px 0 #999;
+            font-size: 1.2rem; cursor: pointer; box-shadow: 0 2px 0 #999;
         }
         .piece.flipped { background: #eee; color: #d32f2f; box-shadow: none; transform: translateY(2px); }
         .piece.black { color: #000; }
@@ -48,9 +47,12 @@
             background: white; font-weight: bold; transform: translate(-50%, -50%);
         }
 
+        /* 縮小 Bar 的高度 */
         footer { 
             position: fixed; bottom: 0; width: 100%; background: var(--primary); 
-            padding: 15px 0; text-align: center; font-weight: bold; color: var(--dark-gray);
+            padding: 8px 0; /* 從 15px 縮小到 8px */
+            text-align: center; font-weight: bold; color: var(--dark-gray);
+            font-size: 0.85rem;
             z-index: 100;
         }
     </style>
@@ -103,11 +105,11 @@ function renderResult() {
     const view = document.getElementById('result-view');
     
     const centerX = stage.offsetWidth / 2;
-    // 命盤間距稍微縮小一點點，增加容錯率
-    const step = mode === 'single' ? 60 : 40; 
-    const startY = 30; 
+    // 命盤間距微調
+    const step = mode === 'single' ? 60 : 38; 
+    const startY = 25; 
 
-    const dotSize = mode === 'single' ? 60 : 38;
+    const dotSize = mode === 'single' ? 60 : 36;
     const fontSize = mode === 'single' ? '1.5rem' : '1rem';
 
     const getCoords = (n) => {
@@ -115,7 +117,6 @@ function renderResult() {
             const m = {1:[0,1], 2:[-1,1], 3:[1,1], 4:[0,0], 5:[0,2]};
             return m[n];
         } else {
-            // 根據書本圖示排列 1-33 顆
             const map = [
                 [0,1], [-1,1], [1,1], [0,0], 
                 [0,2], [0,3], [-1,3], [1,3], 
@@ -151,10 +152,11 @@ function renderResult() {
         }
     });
 
-    // 關鍵修正：計算可用高度時，扣除 footer 的預計高度 (約 60px)
-    const vHeight = (mode === 'single' ? 3.5 : 18) * step;
-    const availableHeight = stage.offsetHeight - 20; // 留點邊距
-    const scale = Math.min(1, availableHeight / vHeight);
+    // 關鍵修正：可用高度計算更嚴格，確保底部有充足空隙
+    const totalContentHeight = (mode === 'single' ? 3.5 : 18.5) * step;
+    const safeAreaHeight = stage.offsetHeight - 40; // 減去更多邊距
+    const scale = Math.min(1, safeAreaHeight / totalContentHeight);
+    
     view.style.transform = `scale(${scale})`;
 }
 </script>
