@@ -14,7 +14,7 @@
         }
         
         header { font-size: 1.5rem; margin-top: 20px; font-weight: bold; color: var(--dark-gray); flex: 0 0 auto; }
-        .nav-buttons { margin: 15px 0; flex: 0 0 auto; z-index: 20; }
+        .nav-buttons { margin: 15px 0 10px 0; flex: 0 0 auto; z-index: 20; }
         
         button { 
             padding: 10px 25px; font-size: 1rem; cursor: pointer; border: none; 
@@ -22,10 +22,29 @@
             color: var(--dark-gray); box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
+        /* 問題輸入框樣式 */
+        #question-area {
+            width: 80%;
+            max-width: 300px;
+            margin-bottom: 15px;
+            flex: 0 0 auto;
+        }
+        #question-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1.5px solid #ccc;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            color: var(--dark-gray);
+            outline: none;
+            background-color: #fff;
+        }
+        #question-input:focus { border-color: var(--primary); }
+
         #stage { 
             flex: 1; width: 100%; display: flex; flex-direction: column;
             align-items: center; position: relative; 
-            padding-top: 10px; 
+            padding-top: 5px; 
             padding-bottom: 20px; 
             overflow: hidden;
         }
@@ -46,6 +65,7 @@
             border-radius: 50%; display: flex; justify-content: center; align-items: center; 
             background: white; font-weight: bold; transform: translate(-50%, -50%);
         }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
@@ -54,6 +74,10 @@
 <div class="nav-buttons">
     <button onclick="initGame('single')">單掛</button>
     <button onclick="initGame('chart')">命盤</button>
+</div>
+
+<div id="question-area" class="hidden">
+    <input type="text" id="question-input" placeholder="請輸入你想詢問的問題...">
 </div>
 
 <div id="stage"></div>
@@ -67,6 +91,17 @@ let mode = '', selected = [], shuffled = [];
 function initGame(m) {
     mode = m; selected = [];
     shuffled = [...POOL].sort(() => Math.random() - 0.5);
+    
+    // 控制輸入框顯示/隱藏
+    const qArea = document.getElementById('question-area');
+    const qInput = document.getElementById('question-input');
+    if (mode === 'single') {
+        qArea.classList.remove('hidden');
+        qInput.value = ''; // 清空上次問題
+    } else {
+        qArea.classList.add('hidden');
+    }
+
     const stage = document.getElementById('stage');
     stage.innerHTML = '<div id="game-board" class="board-grid"></div>';
     const board = document.getElementById('game-board');
@@ -89,18 +124,16 @@ function initGame(m) {
 }
 
 function renderResult() {
+    // 卦象出現後隱藏問題輸入框
+    document.getElementById('question-area').classList.add('hidden');
+    
     const stage = document.getElementById('stage');
     stage.innerHTML = '<div id="result-view"></div>'; 
     const view = document.getElementById('result-view');
     
     const centerX = stage.offsetWidth / 2;
-    
-    // 單掛間距拉開至 90，命盤維持 40
     const step = mode === 'single' ? 90 : 40; 
-    // 單掛起始位置稍微往下移一點 (50)，命盤維持靠上 (30)
     const startY = mode === 'single' ? 50 : 30; 
-
-    // 單掛棋子加大至 70px
     const dotSize = mode === 'single' ? 70 : 38;
     const fontSize = mode === 'single' ? '1.8rem' : '1rem';
 
